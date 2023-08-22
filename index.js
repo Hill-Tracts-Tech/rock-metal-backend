@@ -10,7 +10,7 @@ const cartRoute = require("./routes/cart");
 const orderRoute = require("./routes/order");
 const stripeRoute = require("./routes/stripe");
 const cors = require("cors");
-
+const handleValidationError = require("./errors/handleValidationError");
 
 mongoose
   .connect(process.env.MONGO_URL)
@@ -27,6 +27,22 @@ app.use("/api/products", productRoute);
 app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/checkout", stripeRoute);
+
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: "Not Found",
+    errorMessages: [
+      {
+        path: req.originalUrl,
+        message: "Api Not Found",
+      },
+    ],
+  });
+  next();
+});
+
+app.use(handleValidationError);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log("Backend server is running!");
