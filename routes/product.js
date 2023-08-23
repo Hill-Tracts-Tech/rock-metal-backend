@@ -14,9 +14,9 @@ router.post("/", verifyTokenAndAdmin, async (req, res) => {
 
   try {
     const savedProduct = await newProduct.save();
-    res.status(200).json(savedProduct);
+    res.status(200).json({ success: true, data: savedProduct });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ success: false, error: err });
   }
 });
 
@@ -30,9 +30,9 @@ router.put("/:id", verifyTokenAndAdmin, async (req, res) => {
       },
       { new: true }
     );
-    res.status(200).json(updatedProduct);
+    res.status(200).json({ success: true, data: updatedProduct });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ success: false, error: err });
   }
 });
 
@@ -40,9 +40,11 @@ router.put("/:id", verifyTokenAndAdmin, async (req, res) => {
 router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
-    res.status(200).json("Product has been deleted...");
+    res
+      .status(200)
+      .json({ success: true, message: "Product has been deleted..." });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ success: false, error: err });
   }
 });
 
@@ -50,9 +52,9 @@ router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
 router.get("/find/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    res.status(200).json(product);
+    res.status(200).json({ success: true, data: product });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ success: false, error: err });
   }
 });
 
@@ -75,9 +77,9 @@ router.get("/", async (req, res) => {
       products = await Product.find();
     }
 
-    res.status(200).json(products);
+    res.status(200).json({ success: true, data: products });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ success: false, error: err });
   }
 });
 
