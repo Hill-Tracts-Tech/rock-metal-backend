@@ -6,9 +6,24 @@ const ApiError = require("../errors/apiError");
 
 //REGISTER
 router.post("/register", async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (user) {
+    return res
+      .status(409)
+      .json({ success: false, error: "This email is already taken" });
+  }
+
+  if (req.body.password.length < 6) {
+    return res
+      .status(403)
+      .json({ success: false, error: "Password length have to be at least 6" });
+  }
+
   const newUser = new User({
     username: req.body.username,
     email: req.body.email,
+    isAdmin: req.body?.isAdmin ? req.body?.isAdmin : false,
     password: CryptoJS.AES.encrypt(
       req.body.password,
       process.env.PASS_SEC
@@ -17,26 +32,33 @@ router.post("/register", async (req, res) => {
 
   try {
     const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
+    res.status(201).json({ success: true, data: savedUser });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
 
 //LOGIN
-
 router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-    !user && new ApiError(401, "Wrong Credentials");
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, error: "Email or Password is incorrect" });
+    }
 
     const hashedPassword = CryptoJS.AES.decrypt(
       user.password,
       process.env.PASS_SEC
     );
-    const OriginalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
-    OriginalPassword !== req.body.password &&
-      new ApiError(401, "Wrong Credentials");
+    const originalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
+
+    if (originalPassword !== req.body.password) {
+      return res
+        .status(401)
+        .json({ success: false, error: "Email or Password is incorrect" });
+    }
 
     const accessToken = jwt.sign(
       {
@@ -47,11 +69,11 @@ router.post("/login", async (req, res) => {
       { expiresIn: "3d" }
     );
 
-    const { password, ...others } = user._doc;
+    const { password, ...userInfo } = user._doc;
 
-    res.status(200).json({ ...others, accessToken });
+    res.status(200).json({ success: true, data: { ...userInfo, accessToken } });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
 
