@@ -13,7 +13,7 @@ router.post("/register", async (req, res) => {
       .json({ success: false, error: "This email is already taken" });
   }
 
-  if (req.body.password.length < 6) {
+  if (req.body?.password?.length < 6) {
     return res
       .status(403)
       .json({ success: false, error: "Password length have to be at least 6" });
