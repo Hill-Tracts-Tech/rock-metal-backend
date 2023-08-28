@@ -3,6 +3,10 @@ const { ObjectId } = require("mongodb");
 const router = require("express").Router();
 const { SslCommerzPayment } = require("sslcommerz");
 const Order = require("../models/Order");
+const {
+  verifyTokenAndAuthorization,
+  verifyTokenAndAdmin,
+} = require("./verifyToken");
 require("dotenv").config();
 
 router.post("/payment", async (req, res) => {
@@ -13,7 +17,7 @@ router.post("/payment", async (req, res) => {
   });
 
   const { amount: total_amount, products } = result;
-  const { name, email, address, postcode, city, phone } = req.body;
+  const { name, email, address, postcode, city, phone, user } = req.body;
 
   const data = {
     total_amount: total_amount,
@@ -65,6 +69,7 @@ router.post("/payment", async (req, res) => {
         products,
         paymentStatus: "Pending",
         transaction_Id,
+        user,
       });
 
       try {
@@ -135,6 +140,27 @@ router.post("/payment", async (req, res) => {
       res.status(500).json({ success: false, error: error });
     }
   });
+});
+
+//GET USER ORDERS
+router.get("/find/:userId", verifyTokenAndAuthorization, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.params.userId }).populate(
+      "user"
+    );
+    res.status(200).json({ success: true, data: orders });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
+  }
+});
+
+router.get("/", verifyTokenAndAdmin, async (req, res) => {
+  try {
+    const orders = await Order.find();
+    res.status(200).json({ success: true, data: orders });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
+  }
 });
 
 module.exports = router;
