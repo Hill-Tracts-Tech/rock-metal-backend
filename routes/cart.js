@@ -8,20 +8,19 @@ const {
 const router = require("express").Router();
 
 //CREATE
-
 router.post("/", verifyToken, async (req, res) => {
   const newCart = new Cart(req.body);
 
   try {
     const savedCart = await newCart.save();
-    res.status(200).json(savedCart);
+    res.status(200).json({ success: true, data: savedCart });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ success: false, error: err });
   }
 });
 
 //UPDATE
-router.put("/:id", verifyTokenAndAuthorization, async (req, res) => {
+router.put("/:id", verifyTokenAndAdmin, async (req, res) => {
   try {
     const updatedCart = await Cart.findByIdAndUpdate(
       req.params.id,
@@ -37,7 +36,7 @@ router.put("/:id", verifyTokenAndAuthorization, async (req, res) => {
 });
 
 //DELETE
-router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
+router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
   try {
     await Cart.findByIdAndDelete(req.params.id);
     res.status(200).json("Cart has been deleted...");
@@ -46,22 +45,57 @@ router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
   }
 });
 
-//GET USER CART
+//GET USER CartS
 router.get("/find/:userId", verifyTokenAndAuthorization, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.params.userId });
-    res.status(200).json(cart);
+    const Carts = await Cart.find({ userId: req.params.userId }).populate(
+      "user"
+    );
+    res.status(200).json({ success: true, data: Carts });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ success: false, error: err });
+  }
+});
+router.get("/", verifyTokenAndAdmin, async (req, res) => {
+  try {
+    const Carts = await Cart.find();
+    res.status(200).json({ success: true, data: Carts });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
   }
 });
 
-// //GET ALL
+// GET MONTHLY INCOME
+router.get("/income", verifyTokenAndAdmin, async (req, res) => {
+  const productId = req.query.pid;
+  const date = new Date();
+  const lastMonth = new Date(date.setMonth(date.getMonth() - 1));
+  const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1));
 
-router.get("/", verifyTokenAndAdmin, async (req, res) => {
   try {
-    const carts = await Cart.find();
-    res.status(200).json(carts);
+    const income = await Cart.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: previousMonth },
+          ...(productId && {
+            products: { $elemMatch: { productId } },
+          }),
+        },
+      },
+      {
+        $project: {
+          month: { $month: "$createdAt" },
+          sales: "$amount",
+        },
+      },
+      {
+        $group: {
+          _id: "$month",
+          total: { $sum: "$sales" },
+        },
+      },
+    ]);
+    res.status(200).json(income);
   } catch (err) {
     res.status(500).json(err);
   }
