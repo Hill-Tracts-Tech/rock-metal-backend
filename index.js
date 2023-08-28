@@ -27,6 +27,12 @@ app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/checkout", stripeRoute);
 
+// ----------- ssl commerz setup -------------
+//sslcommerz init
+app.post("/init", (req, res) => {});
+
+// --------- ssl commerz setup end -------------
+
 app.use((req, res, next) => {
   res.status(404).json({
     success: false,
