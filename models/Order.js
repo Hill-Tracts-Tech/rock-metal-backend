@@ -5,6 +5,7 @@ const OrderSchema = new mongoose.Schema({
   products: Array,
   paymentStatus: String,
   transaction_Id: String,
+  total_amount: Number,
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 

@@ -70,6 +70,7 @@ router.post("/payment", async (req, res) => {
         paymentStatus: "Pending",
         transaction_Id,
         user,
+        total_amount,
       });
 
       try {
