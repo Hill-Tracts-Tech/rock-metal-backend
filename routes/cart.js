@@ -7,13 +7,25 @@ const {
 
 const router = require("express").Router();
 
-//CREATE
+//CREATE or UPDATE
 router.post("/", verifyToken, async (req, res) => {
-  const newCart = new Cart(req.body);
+  const { userId, products } = req.body;
 
   try {
-    const savedCart = await newCart.save();
-    res.status(200).json({ success: true, data: savedCart });
+    // Check if cart already exists for the user
+    let existingCart = await Cart.findOne({ user: userId });
+
+    if (existingCart) {
+      // If cart exists, update the products
+      existingCart.products = products;
+      await existingCart.save();
+      res.status(200).json({ success: true, data: existingCart });
+    } else {
+      // If cart doesn't exist, create a new one
+      const newCart = new Cart({ user: userId, products });
+      const savedCart = await newCart.save();
+      res.status(200).json({ success: true, data: savedCart });
+    }
   } catch (err) {
     res.status(500).json({ success: false, error: err });
   }
