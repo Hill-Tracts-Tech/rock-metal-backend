@@ -15,11 +15,9 @@ router.post("/payment", async (req, res) => {
   const result = await Cart.findOne({
     user: req.body._id,
   });
-  console.log(result);
 
   const { amount: total_amount, products } = result;
-  const { name, email, address, postcode, city, phone, user } = req.body;
-  console.log(result);
+  const { name, email, address, postcode, city, phone, _id } = req.body;
   const data = {
     total_amount: total_amount,
     currency: "BDT",
@@ -70,13 +68,12 @@ router.post("/payment", async (req, res) => {
         products,
         paymentStatus: "Pending",
         transaction_Id,
-        user,
+        user: _id,
         total_amount,
       });
 
       try {
         await order.save();
-        console.log(apiResponse);
         res
           .status(200)
           .json({ success: true, data: apiResponse.GatewayPageURL });
@@ -144,7 +141,7 @@ router.post("/payment", async (req, res) => {
   });
 });
 
-// get all order
+// GET ALL ORDERS
 router.get("/", verifyTokenAndAdmin, async (req, res) => {
   try {
     const orders = await Order.find();
