@@ -146,7 +146,7 @@ router.post("/payment", async (req, res) => {
 //GET USER ORDERS
 router.get("/find/:userId", verifyTokenAndAuthorization, async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.params.userId }).populate(
+    const orders = await Order.findOne({ userId: req.params.userId }).populate(
       "user"
     );
     res.status(200).json({ success: true, data: orders });
