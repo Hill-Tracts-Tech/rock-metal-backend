@@ -5,33 +5,47 @@ const jwt = require("jsonwebtoken");
 
 //REGISTER
 router.post("/register", async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
-
-  if (user) {
-    return res
-      .status(409)
-      .json({ success: false, error: "This email is already taken" });
-  }
-
-  if (req.body?.password?.length < 6) {
-    return res
-      .status(403)
-      .json({ success: false, error: "Password length have to be at least 6" });
-  }
-
-  const newUser = new User({
-    name: req.body.name,
-    email: req.body.email,
-    phone: req.body.userNumber,
-    isAdmin: req.body?.isAdmin ? req.body?.isAdmin : false,
-    password: CryptoJS.AES.encrypt(
-      req.body.password,
-      process.env.PASS_SEC
-    ).toString(),
-  });
   try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (user) {
+      return res
+        .status(409)
+        .json({ success: false, error: "This email is already taken" });
+    }
+
+    if (req.body?.password?.length < 6) {
+      return res.status(403).json({
+        success: false,
+        error: "Password length have to be at least 6",
+      });
+    }
+
+    const newUser = new User({
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.userNumber,
+      isAdmin: req.body?.isAdmin ? req.body?.isAdmin : false,
+      password: CryptoJS.AES.encrypt(
+        req.body.password,
+        process.env.PASS_SEC
+      ).toString(),
+    });
+
     const savedUser = await newUser.save();
-    res.status(201).json({ success: true, data: savedUser });
+
+    const accessToken = jwt.sign(
+      {
+        id: savedUser._id,
+        isAdmin: savedUser?.isAdmin,
+      },
+      process.env.JWT_SEC,
+      { expiresIn: "3d" }
+    );
+
+    const { password, ...userInfo } = savedUser._doc;
+
+    res.status(201).json({ success: true, data: { ...userInfo, accessToken } });
   } catch (err) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
