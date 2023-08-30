@@ -144,21 +144,30 @@ router.post("/payment", async (req, res) => {
   });
 });
 
-//GET USER ORDERS
-router.get("/find/:userId", verifyTokenAndAuthorization, async (req, res) => {
+// get all order
+router.get("/", verifyTokenAndAdmin, async (req, res) => {
   try {
-    const orders = await Order.findOne({ userId: req.params.userId }).populate(
-      "user"
-    );
+    const orders = await Order.find();
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
     res.status(500).json({ success: false, error: err });
   }
 });
 
-router.get("/", verifyTokenAndAdmin, async (req, res) => {
+//GET USER ORDERS
+router.get("/find/:id", verifyTokenAndAuthorization, async (req, res) => {
   try {
-    const orders = await Order.find();
+    const orders = await Order.find({ id: req.params.userId }).populate("user");
+    res.status(200).json({ success: true, data: orders });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
+  }
+});
+
+//GET SINGLE ORDERS
+router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
+  try {
+    const orders = await Order.find({ id: req.params.userId }).populate("user");
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
     res.status(500).json({ success: false, error: err });
