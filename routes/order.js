@@ -153,7 +153,6 @@ router.get("/", verifyTokenAndAdmin, async (req, res) => {
 
 //GET USER ORDERS
 router.get("/find/:id", verifyTokenAndAuthorization, async (req, res) => {
-  console.log(req.params.id);
   try {
     const orders = await Order.find({ user: req.params.id }).populate("user");
     res.status(200).json({ success: true, data: orders });
