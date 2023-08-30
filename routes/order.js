@@ -15,10 +15,11 @@ router.post("/payment", async (req, res) => {
   const result = await Cart.findOne({
     user: req.body._id,
   });
+  console.log(result);
 
   const { amount: total_amount, products } = result;
   const { name, email, address, postcode, city, phone, user } = req.body;
-
+  console.log(result);
   const data = {
     total_amount: total_amount,
     currency: "BDT",
@@ -75,7 +76,7 @@ router.post("/payment", async (req, res) => {
 
       try {
         await order.save();
-
+        console.log(apiResponse);
         res
           .status(200)
           .json({ success: true, data: apiResponse.GatewayPageURL });
