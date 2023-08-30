@@ -164,7 +164,7 @@ router.get("/find/:id", verifyTokenAndAuthorization, async (req, res) => {
 //GET SINGLE ORDERS
 router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
   try {
-    const orders = await Order.find({ id: req.params.userId }).populate("user");
+    const orders = await Order.find({ _id: req.params.id }).populate("user");
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
     res.status(500).json({ success: false, error: err });
