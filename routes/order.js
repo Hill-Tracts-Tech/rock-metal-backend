@@ -151,6 +151,35 @@ router.get("/", verifyTokenAndAdmin, async (req, res) => {
   }
 });
 
+//GET MONTHLY INCOME STATS
+
+router.get("/income-stats", verifyTokenAndAdmin, async (req, res) => {
+  const date = new Date();
+  const lastYear = new Date(date.setFullYear(date.getFullYear() - 1));
+
+  try {
+    const data = await Order.aggregate([
+      { $match: { createdAt: { $gte: lastYear } } },
+      {
+        $project: {
+          month: { $month: "$createdAt" },
+          total_amount: "$total_amount",
+        },
+      },
+      {
+        $group: {
+          _id: "$month",
+          total_amount: { $sum: "$total_amount" },
+        },
+      },
+    ]);
+    console.log(data);
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
+  }
+});
+
 //GET USER ORDERS
 router.get("/find/:id", verifyTokenAndAuthorization, async (req, res) => {
   try {
@@ -188,34 +217,6 @@ router.post("/:id", async (req, res) => {
     res.status(200).json({ success: true, data: order });
   } catch (error) {
     res.status(500).json({ success: false, error: error });
-  }
-});
-
-//GET MONTHLY INCOME STATS
-
-router.get("/income-stats", verifyTokenAndAdmin, async (req, res) => {
-  const date = new Date();
-  const lastYear = new Date(date.setFullYear(date.getFullYear() - 1));
-
-  try {
-    const data = await Order.aggregate([
-      { $match: { createdAt: { $gte: lastYear } } },
-      {
-        $project: {
-          month: { $month: "$createdAt" },
-          total_amount: "$total_amount",
-        },
-      },
-      {
-        $group: {
-          _id: "$month",
-          total_amount: { $sum: "$total_amount" },
-        },
-      },
-    ]);
-    res.status(200).json({ success: true, data });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err });
   }
 });
 
