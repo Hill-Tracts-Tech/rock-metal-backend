@@ -9,6 +9,47 @@ const {
 } = require("./verifyToken");
 require("dotenv").config();
 
+router.post("/cash-on-delivery", async (req, res) => {
+  const transaction_Id = new ObjectId().toString();
+
+  const result = await Cart.findOne({
+    user: req.body._id,
+  });
+
+  const { amount: total_amount, products } = result;
+
+  const { name, email, address, postcode, city, phone, _id } = req.body;
+
+  const data = {
+    cus_name: name,
+    cus_email: email,
+    cus_add1: address,
+    cus_add2: city,
+    cus_postcode: postcode,
+    cus_phone: phone,
+    cus_fax: phone,
+  };
+
+  const order = new Order({
+    data,
+    products,
+    paymentStatus: "Pending",
+    transaction_Id,
+    user: _id,
+    total_amount,
+  });
+
+  try {
+    await order.save();
+    res.status(200).json({ success: true, data: order });
+  } catch (error) {
+    res.status(400).json({
+      status: false,
+      error: error,
+    });
+  }
+});
+
 router.post("/payment", async (req, res) => {
   const transaction_Id = new ObjectId().toString();
 
