@@ -99,7 +99,7 @@ router.post("/payment", async (req, res) => {
         },
         {
           $set: {
-            status: "Paid",
+            paymentStatus: "Paid",
           },
         }
       );
@@ -122,13 +122,13 @@ router.post("/payment", async (req, res) => {
 
   router.post("/payment/cancel/:transaction_Id", async (req, res) => {
     try {
-      await Cart.updateOne(
+      await Order.updateOne(
         {
           transaction_Id: req.params.transaction_Id,
         },
         {
           $set: {
-            status: "Pending",
+            paymentStatus: "Pending",
           },
         }
       );
@@ -168,6 +168,26 @@ router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
     res.status(500).json({ success: false, error: err });
+  }
+});
+
+// UPDATE PAYMENT STATUS
+router.post("/:id", async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      { _id: req.params.id },
+      {
+        $set: {
+          paymentStatus: req.body.paymentStatus,
+        },
+      }
+    );
+    if (!order) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+    res.status(200).json({ success: true, data: order });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error });
   }
 });
 
