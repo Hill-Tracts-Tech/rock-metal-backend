@@ -221,7 +221,7 @@ router.get("/income-stats", verifyTokenAndAdmin, async (req, res) => {
   }
 });
 
-//GET SINGLE ORDER
+//GET ORDER DETAILS
 router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
   try {
     const order = await Order.findOne({
