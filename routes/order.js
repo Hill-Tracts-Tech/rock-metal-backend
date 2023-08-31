@@ -221,20 +221,27 @@ router.get("/income-stats", verifyTokenAndAdmin, async (req, res) => {
   }
 });
 
-//GET USER ORDERS
-router.get("/find/:id", verifyTokenAndAuthorization, async (req, res) => {
+//GET ORDER DETAILS
+router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.params.id }).populate("user");
-    res.status(200).json({ success: true, data: orders });
+    const order = await Order.findOne({
+      transaction_Id: req.params.id,
+    }).populate("user");
+
+    if (!order) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+
+    res.status(200).json({ success: true, data: order });
   } catch (err) {
     res.status(500).json({ success: false, error: err });
   }
 });
 
-//GET SINGLE ORDERS
-router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
+//GET USER ORDERS
+router.get("/find/:id", verifyTokenAndAuthorization, async (req, res) => {
   try {
-    const orders = await Order.find({ _id: req.params.id }).populate("user");
+    const orders = await Order.find({ user: req.params.id }).populate("user");
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
     res.status(500).json({ success: false, error: err });
