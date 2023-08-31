@@ -33,6 +33,19 @@ app.use((req, res, next) => {
   next();
 });
 
+class ApiError extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+  }
+}
+
 app.use((err, req, res, next) => {
   console.error(err);
 
