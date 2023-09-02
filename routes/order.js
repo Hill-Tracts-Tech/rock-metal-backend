@@ -253,6 +253,20 @@ router.get("/find/:id", verifyTokenAndAuthorization, async (req, res) => {
   }
 });
 
+//GET USER ORDERS
+router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
+  try {
+    await Order.findOneAndDelete({
+      transaction_Id: req.params.id,
+    });
+    res
+      .status(200)
+      .json({ success: true, message: "Order Deleted Successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
+  }
+});
+
 // UPDATE PAYMENT STATUS
 router.post("/:id", async (req, res) => {
   try {
