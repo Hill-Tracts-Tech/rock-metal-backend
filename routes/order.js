@@ -270,6 +270,26 @@ router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
   }
 });
 
+// UPDATE SHIPPING STATUS
+router.put("/shipping/:id", async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      { _id: req.params.id },
+      {
+        $set: {
+          shippingStatus: req.body.shippingStatus,
+        },
+      }
+    );
+    if (!order) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+    res.status(200).json({ success: true, data: order });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error });
+  }
+});
+
 // UPDATE PAYMENT STATUS
 router.post("/:id", async (req, res) => {
   try {
