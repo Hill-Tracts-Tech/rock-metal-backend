@@ -24,7 +24,7 @@ router.post("/cash-on-delivery", async (req, res) => {
     cus_name: name,
     cus_email: email,
     cus_add1: address,
-    cus_add2: city,
+    cus_city: city,
     cus_postcode: postcode,
     cus_phone: phone,
     cus_fax: phone,
@@ -34,9 +34,11 @@ router.post("/cash-on-delivery", async (req, res) => {
     data,
     products,
     paymentStatus: "Pending",
+    shippingStatus: "Pending",
     transaction_Id,
     user: _id,
     total_amount,
+    shipping_method: "Courier",
   });
 
   try {
@@ -63,7 +65,7 @@ router.post("/payment", async (req, res) => {
     total_amount: total_amount,
     currency: "BDT",
     product_img: products[0]?.img,
-    tran_id: transaction_Id,
+    transaction_Id: transaction_Id,
     success_url: `${process.env.StoreRoute}/payment/success/${transaction_Id}`,
     fail_url: `${process.env.StoreRoute}/payment/fail/${transaction_Id}`,
     cancel_url: `${process.env.StoreRoute}/cancel/${transaction_Id}`,
@@ -108,6 +110,7 @@ router.post("/payment", async (req, res) => {
         data,
         products,
         paymentStatus: "Pending",
+        shippingStatus: "Pending",
         transaction_Id,
         user: _id,
         total_amount,
@@ -267,8 +270,28 @@ router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
   }
 });
 
+// UPDATE SHIPPING STATUS
+router.put("/shipping/:id", async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      { _id: req.params.id },
+      {
+        $set: {
+          shippingStatus: req.body.shippingStatus,
+        },
+      }
+    );
+    if (!order) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+    res.status(200).json({ success: true, data: order });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error });
+  }
+});
+
 // UPDATE PAYMENT STATUS
-router.post("/:id", async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
       { _id: req.params.id },
