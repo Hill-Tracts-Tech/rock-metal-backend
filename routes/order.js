@@ -291,7 +291,7 @@ router.put("/shipping/:id", async (req, res) => {
 });
 
 // UPDATE PAYMENT STATUS
-router.post("/:id", async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
       { _id: req.params.id },
