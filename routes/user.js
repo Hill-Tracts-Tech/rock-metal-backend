@@ -56,18 +56,40 @@ router.get("/find/:id", verifyTokenAndAdmin, async (req, res) => {
 //GET ALL USER
 router.get("/", verifyTokenAndAdmin, async (req, res) => {
   const query = req.query.new;
+  const admin = req.query.admin;
   try {
     const users = query
       ? await User.find().sort({ _id: -1 }).limit(5)
-      : await User.find();
+      : admin
+      ? await User.find({ isAdmin: true })
+      : await User.find({ isAdmin: false });
     res.status(200).json({ success: true, data: users });
   } catch (err) {
     res.status(500).json(err);
   }
 });
 
-//GET USER STATS
+// CHANGE ADMIN STATUS
+router.post("/:id", async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      { _id: req.params.id },
+      {
+        $set: {
+          isAdmin: req.body.isAdmin,
+        },
+      }
+    );
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error });
+  }
+});
 
+//GET USER STATS
 router.get("/stats", verifyTokenAndAdmin, async (req, res) => {
   const date = new Date();
   const lastYear = new Date(date.setFullYear(date.getFullYear() - 1));
