@@ -8,6 +8,7 @@ const authRoute = require("./routes/auth");
 const productRoute = require("./routes/product");
 const cartRoute = require("./routes/cart");
 const orderRoute = require("./routes/order");
+const sliderRoute = require("./routes/slider");
 const cors = require("cors");
 
 mongoose
@@ -24,6 +25,7 @@ app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
 app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
+app.use("/api/sliders", sliderRoute);
 
 app.use((req, res, next) => {
   res.status(404).json({
