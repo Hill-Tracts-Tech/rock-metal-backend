@@ -14,6 +14,15 @@ router.post("/", verifyTokenAndAdmin, async (req, res) => {
   }
 });
 
+// Get Specific Product
+router.get("/find/:id", async (req, res) => {
+  try {
+    const slider = await Slider.findById(req.params.id);
+    res.status(200).json({ success: true, data: slider });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
+  }
+});
 //GET ALL Slider
 router.get("/", async (req, res) => {
   try {
@@ -24,8 +33,7 @@ router.get("/", async (req, res) => {
   }
 });
 // Delete Slider
-
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
   try {
     await Slider.findByIdAndDelete(req.params.id);
     res
@@ -36,7 +44,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 //UPDATE
-router.put("/:id", async (req, res) => {
+router.put("/:id", verifyTokenAndAdmin, async (req, res) => {
   try {
     const updateSlider = await Slider.findByIdAndUpdate(
       req.params.id,
