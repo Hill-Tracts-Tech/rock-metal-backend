@@ -8,6 +8,7 @@ const OrderSchema = new mongoose.Schema(
     shippingStatus: String,
     transaction_Id: String,
     total_amount: Number,
+    deliveryCharge: Number,
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
