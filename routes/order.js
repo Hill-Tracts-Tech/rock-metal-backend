@@ -18,7 +18,8 @@ router.post("/cash-on-delivery", async (req, res) => {
 
   const { amount: total_amount, products } = result;
 
-  const { name, email, address, postcode, city, phone, _id } = req.body;
+  const { name, email, address, postcode, city, phone, _id, deliveryCharge } =
+    req.body;
 
   const data = {
     cus_name: name,
@@ -38,6 +39,7 @@ router.post("/cash-on-delivery", async (req, res) => {
     transaction_Id,
     user: _id,
     total_amount,
+    deliveryCharge: deliveryCharge,
     shipping_method: "Courier",
   });
 
