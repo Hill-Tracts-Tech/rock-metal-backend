@@ -2,7 +2,6 @@ const router = require("express").Router();
 const User = require("../models/User");
 const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
-const { verifyTokenAndAdmin } = require("./verifyToken");
 
 //REGISTER
 router.post("/register", async (req, res) => {
@@ -52,13 +51,50 @@ router.post("/register", async (req, res) => {
 });
 
 //LOGIN
-router.post("/login", verifyTokenAndAdmin, async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
+      return res.status(401).json({ success: false, error: "User not found" });
+    }
+
+    const hashedPassword = CryptoJS.AES.decrypt(
+      user.password,
+      process.env.PASS_SEC
+    );
+    const originalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
+
+    if (originalPassword !== req.body.password) {
       return res
         .status(401)
         .json({ success: false, error: "Email or Password is incorrect" });
+    }
+
+    const accessToken = jwt.sign(
+      {
+        id: user._id,
+        isAdmin: user?.isAdmin,
+      },
+      process.env.JWT_SEC,
+      { expiresIn: "3d" }
+    );
+
+    const { password, ...userInfo } = user._doc;
+
+    res.status(200).json({ success: true, data: { ...userInfo, accessToken } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
+//DASHBOARD LOGIN
+router.post("/login/dashboard", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email, isAdmin: true });
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, error: "You are not an admin" });
     }
 
     const hashedPassword = CryptoJS.AES.decrypt(
