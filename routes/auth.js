@@ -2,6 +2,7 @@ const router = require("express").Router();
 const User = require("../models/User");
 const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
+const { verifyTokenAndAdmin } = require("./verifyToken");
 
 //REGISTER
 router.post("/register", async (req, res) => {
@@ -51,7 +52,7 @@ router.post("/register", async (req, res) => {
 });
 
 //LOGIN
-router.post("/login", async (req, res) => {
+router.post("/login", verifyTokenAndAdmin, async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
