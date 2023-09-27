@@ -211,17 +211,24 @@ router.get("/income-stats", verifyTokenAndAdmin, async (req, res) => {
 
   try {
     const data = await Order.aggregate([
-      { $match: { createdAt: { $gte: lastYear } } },
+      {
+        $match: {
+          createdAt: { $gte: lastYear },
+          paymentStatus: "Paid",
+        },
+      },
       {
         $project: {
           month: { $month: "$createdAt" },
-          total_amount: "$total_amount",
+          totalAmountPlusDeliveryCharge: {
+            $sum: ["$total_amount", "$deliveryCharge"],
+          },
         },
       },
       {
         $group: {
           _id: "$month",
-          total_amount: { $sum: "$total_amount" },
+          total_amount: { $sum: "$totalAmountPlusDeliveryCharge" },
         },
       },
     ]);
@@ -230,7 +237,6 @@ router.get("/income-stats", verifyTokenAndAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: err });
   }
 });
-
 //GET ORDER DETAILS
 router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
   try {
