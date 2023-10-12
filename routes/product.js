@@ -90,11 +90,11 @@ router.get("/", async (req, res) => {
         categories: {
           $in: [qCategory],
         },
-      });
+      }).sort({ createdAt: -1 });
     } else if (searchTerm) {
-      products = await Product.find(whereConditions);
+      products = await Product.find(whereConditions).sort({ createdAt: -1 });
     } else {
-      products = await Product.find();
+      products = await Product.find().sort({ createdAt: -1 });
     }
     res.status(200).json({ success: true, data: products });
   } catch (err) {
