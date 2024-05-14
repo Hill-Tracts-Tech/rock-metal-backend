@@ -23,6 +23,7 @@ const whitelist = [
   "http://localhost:3001",
   "https://api.rockmetaltshirt.com",
   "https://rockmetaltshirt.com",
+  "https://admin.rockmetaltshirt.com",
   "https://rock-metal-backend-6htsx5og2-chttravels-projects.vercel.app",
 ];
 const corsOptions = {
