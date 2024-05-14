@@ -18,7 +18,11 @@ mongoose
     console.log(err);
   });
 
-const whitelist = ["http://localhost:3000", "https://api.rockmetaltshirt.com"];
+const whitelist = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://api.rockmetaltshirt.com",
+];
 const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
@@ -29,7 +33,7 @@ const corsOptions = {
   },
 };
 
-app.use(cors());
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.get("/", (req, res) => {
