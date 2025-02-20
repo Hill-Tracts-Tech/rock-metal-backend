@@ -3,6 +3,9 @@ const { ObjectId } = require("mongodb");
 const router = require("express").Router();
 const { SslCommerzPayment } = require("sslcommerz");
 const Order = require("../models/Order");
+const { v4: uuidv4 } = require("uuid"); // Import UUID
+const mongoose = require("mongoose");
+
 const {
   verifyTokenAndAuthorization,
   verifyTokenAndAdmin,
@@ -10,47 +13,58 @@ const {
 require("dotenv").config();
 
 router.post("/cash-on-delivery", async (req, res) => {
-  const transaction_Id = new ObjectId().toString();
-
-  const result = await Cart.findOne({
-    user: req.body._id,
-  });
-
-  const { amount: total_amount, products } = result;
-
-  const { name, email, address, postcode, city, phone, _id, deliveryCharge } =
-    req.body;
-
-  const data = {
-    cus_name: name,
-    cus_email: email,
-    cus_add1: address,
-    cus_city: city,
-    cus_postcode: postcode,
-    cus_phone: phone,
-    cus_fax: phone,
-  };
-
-  const order = new Order({
-    data,
-    products,
-    paymentStatus: "Pending",
-    shippingStatus: "Pending",
-    transaction_Id,
-    user: _id,
-    total_amount,
-    deliveryCharge: deliveryCharge,
-    shipping_method: "Courier",
-  });
-
   try {
+    const transaction_Id = new mongoose.Types.ObjectId().toString();
+    let total_amount, products;
+
+    // For logged-in users, fetch the cart and products
+    if (req.body._id) {
+      const cart = await Cart.findOne({ user: req.body._id });
+      if (!cart) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Cart is empty" });
+      }
+      total_amount = cart.total; // Make sure to use the correct field here (cart.amount or cart.total)
+      products = cart.products;
+    } else {
+      // For guest users, get the product details from the request
+      total_amount = req.body.total_amount;
+      products = req.body.products;
+    }
+    console.log(req.body);
+    // Destructure user/guest details from the request body
+    const { guest, _id, deliveryCharge } = req.body;
+    const { name, email, phone, address } = guest;
+    // Ensure address is correctly structured for guests (e.g., street, city, postcode)
+    const orderData = {
+      products,
+      paymentStatus: "Pending",
+      shippingStatus: "Pending",
+      transaction_Id,
+      total_amount,
+      deliveryCharge,
+      shipping_method: "Courier",
+      trackingId: uuidv4(), // Generate unique tracking ID using UUID
+    };
+
+    // For logged-in users, store user ID in the order
+    if (_id) {
+      orderData.user = _id;
+    } else {
+      // For guest users, store guest details in the order
+      orderData.guest = { name, email, phone, address };
+    }
+    console.log(orderData);
+    // Create and save the order
+    const order = new Order(orderData);
     await order.save();
-    res.status(200).json({ success: true, data: order });
+
+    // Send response
+    res.status(200).json({ success: true, order });
   } catch (error) {
-    res.status(400).json({
-      status: false,
-      error: error,
-    });
+    // Handle any errors that occur
+    res.status(400).json({ success: false, error: error.message });
   }
 });
 
@@ -238,10 +252,10 @@ router.get("/income-stats", verifyTokenAndAdmin, async (req, res) => {
   }
 });
 //GET ORDER DETAILS
-router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const order = await Order.findOne({
-      transaction_Id: req.params.id,
+      _id: req.params.id,
     }).populate("user");
 
     if (!order) {
