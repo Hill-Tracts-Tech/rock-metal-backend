@@ -16,6 +16,7 @@ const OrderSchema = new mongoose.Schema(
     },
     products: [
       {
+        img: { type: String, required: false },
         title: { type: String, required: true },
         size: { type: String, required: true },
         color: { type: String, required: true },
