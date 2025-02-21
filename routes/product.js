@@ -57,12 +57,12 @@ router.get("/find/:id", async (req, res) => {
   }
 });
 
-//GET ALL PRODUCTS
+// GET ALL PRODUCTS WITH OPTIONAL LIMIT
 router.get("/", async (req, res) => {
   const qNew = req.query.new;
   const qCategory = req.query.category;
-
   const searchTerm = req.query.searchTerm;
+  const limit = parseInt(req.query.limit); // Get limit from query if provided
 
   const searchableFields = ["title", "desc"];
   const andConditions = [];
@@ -87,15 +87,23 @@ router.get("/", async (req, res) => {
       products = await Product.find().sort({ createdAt: -1 }).limit(1);
     } else if (qCategory) {
       products = await Product.find({
-        categories: {
-          $in: [qCategory],
-        },
+        categories: { $in: [qCategory] },
       }).sort({ createdAt: -1 });
+      if (limit) {
+        products = products.slice(0, limit); // Apply limit if found
+      }
     } else if (searchTerm) {
       products = await Product.find(whereConditions).sort({ createdAt: -1 });
+      if (limit) {
+        products = products.slice(0, limit); // Apply limit if found
+      }
     } else {
       products = await Product.find().sort({ createdAt: -1 });
+      if (limit) {
+        products = products.slice(0, limit); // Apply limit if found
+      }
     }
+
     res.status(200).json({ success: true, data: products });
   } catch (err) {
     res.status(500).json({ success: false, error: err });
